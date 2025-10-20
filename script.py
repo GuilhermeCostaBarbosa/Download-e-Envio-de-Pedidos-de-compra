@@ -7,7 +7,7 @@ import os
 import pyperclip
 import win32com.client as win32
 
-script = "script_sap.vbs"
+script = "arquivo_teste.vbs"
 
 with open(script, 'r') as arquivo:
     backup = arquivo.read()
@@ -22,32 +22,49 @@ for linha in planilha_pedidos.index:
     # Capturar número do pedido na coluna pedidos
     pedido = str(planilha_pedidos.loc[linha, 'pedidos'])
 
-    # Bloco padrão do código SAP considerando o pedido atual
-    bloco_sap = f"""
-session.findById("wnd[0]").maximize
-session.findById("wnd[0]/tbar[0]/okcd").text = "me29n"
-session.findById("wnd[0]").sendVKey 0
-session.findById("wnd[0]/tbar[1]/btn[17]").press
-session.findById("wnd[1]/usr/subSUB0:SAPLMEGUI:0003/ctxtMEPO_SELECT-EBELN").text = "{pedido}"
-session.findById("wnd[1]").sendVKey 0
-session.findById("wnd[0]/tbar[1]/btn[21]").press
-session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3").getAbsoluteRow(0).selected = true
-session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3/lblDV70A-STATUSICON[0,0]").setFocus
-session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3/lblDV70A-STATUSICON[0,0]").caretPosition = 0
-session.findById("wnd[0]/tbar[1]/btn[6]").press
-session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3").columns.elementAt(0).width = 4
-session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3/lblDV70A-STATUSICON[0,0]").setFocus
-session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3/lblDV70A-STATUSICON[0,0]").caretPosition = 0
-session.findById("wnd[0]").sendVKey 2
-session.findById("wnd[0]/usr/chkNAST-DELET").selected = true
-session.findById("wnd[0]/usr/chkNAST-DELET").setFocus
-session.findById("wnd[0]/tbar[0]/btn[3]").press
-session.findById("wnd[0]/tbar[0]/btn[11]").press
+    if str(planilha_pedidos.loc[linha, 'tipo']) == "NB":
+        bloco_sap = f"""
+    session.findById("wnd[0]").maximize
+    session.findById("wnd[0]/tbar[0]/okcd").text = "ME9F"
+    session.findById("wnd[0]").sendVKey 0
+    session.findById("wnd[0]/usr/ctxtS_EBELN-LOW").text = "{pedido}"
+    session.findById("wnd[0]").sendVKey 0
+    session.findById("wnd[0]/tbar[1]/btn[8]").press
+    session.findById("wnd[0]/usr/chk[1,5]").selected = true
+    session.findById("wnd[0]/tbar[1]/btn[16]").press
 
-WScript.Sleep 7000
-"""
-    with open(script, 'a') as arquivo:
-        arquivo.write(bloco_sap)
+    WScript.Sleep 8000
+    """
+        with open(script, 'a') as arquivo:
+            arquivo.write(bloco_sap)
+
+    else:
+        bloco_sap = f"""
+    session.findById("wnd[0]").maximize
+    session.findById("wnd[0]/tbar[0]/okcd").text = "me29n"
+    session.findById("wnd[0]").sendVKey 0
+    session.findById("wnd[0]/tbar[1]/btn[17]").press
+    session.findById("wnd[1]/usr/subSUB0:SAPLMEGUI:0003/ctxtMEPO_SELECT-EBELN").text = "{pedido}"
+    session.findById("wnd[1]").sendVKey 0
+    session.findById("wnd[0]/tbar[1]/btn[21]").press
+    session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3").getAbsoluteRow(0).selected = true
+    session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3/lblDV70A-STATUSICON[0,0]").setFocus
+    session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3/lblDV70A-STATUSICON[0,0]").caretPosition = 0
+    session.findById("wnd[0]/tbar[1]/btn[6]").press
+    session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3").columns.elementAt(0).width = 4
+    session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3/lblDV70A-STATUSICON[0,0]").setFocus
+    session.findById("wnd[0]/usr/tblSAPDV70ATC_NAST3/lblDV70A-STATUSICON[0,0]").caretPosition = 0
+    session.findById("wnd[0]").sendVKey 2
+    session.findById("wnd[0]/usr/chkNAST-DELET").selected = true
+    session.findById("wnd[0]/usr/chkNAST-DELET").setFocus
+    session.findById("wnd[0]/tbar[0]/btn[3]").press
+    session.findById("wnd[0]/tbar[0]/btn[11]").press
+    session.findById("wnd[0]/tbar[0]/btn[15]").press
+
+    WScript.Sleep 8000
+    """
+        with open(script, 'a') as arquivo:
+            arquivo.write(bloco_sap)
     
 # Executar arquivo SAP
 subprocess.Popen(["wscript", script], shell=True)
@@ -80,7 +97,7 @@ for linha in planilha_pedidos.index:
         pyautogui.hotkey('ctrl', 'v')
         pyautogui.press('enter')
 
-
+# Fazer backup do arquivo VBS
 with open(script, 'w') as arquivo:
     arquivo.write(backup)
 
@@ -142,4 +159,16 @@ Guilherme Costa Barbosa
     else:
         print(f"Arquivo {numero_pedido}.pdf não encontrado na pasta.\n")
 
-print("🚀 Todos os e-mails foram processados!")
+print("Todos os e-mails foram processados!")
+
+# Deletar pedidos da pasta
+
+sleep(5)
+
+comando_del = f'del /Q "{os.path.join(pasta_pedidos, "*.pdf")}"'
+
+try:
+    subprocess.run(comando_del, shell=True, check=True)
+
+except subprocess.CalledProcessError as e:
+    print(e)
